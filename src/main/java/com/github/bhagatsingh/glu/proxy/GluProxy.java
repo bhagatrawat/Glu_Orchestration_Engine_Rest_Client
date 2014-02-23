@@ -57,18 +57,7 @@ public class GluProxy {
 	}
 
 	/**
-	 * Loads the jsonModel string into glu.
-	 * <p>
-	 * To post an update to glu we issue a POST request to
-	 * http://glu.outbrain.com/console/rest/v1/outbrain/system/model The body of
-	 * the request should contain the json model. See
-	 * https://github.com/linkedin/glu/wiki/Console
-	 * 
-	 * @param jsonModel
-	 * @throws IOException
-	 * @throws HttpException
-	 * @return planId the ID of the execution plan created by this update. null
-	 *         if the model was already up to date (so there's no plan ID)
+	 * Loads the jsonModel string into glu
 	 */
 	public String loadModel(String jsonModel) throws HttpException, IOException {
 		post.setURI(new URI(getPostModelUrl(), true));
