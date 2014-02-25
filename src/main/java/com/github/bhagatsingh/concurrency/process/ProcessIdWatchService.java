@@ -1,6 +1,10 @@
 package com.github.bhagatsingh.concurrency.process;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -126,18 +130,52 @@ public final class ProcessIdWatchService{
         /**
          * 
          * @param pid
+         * @param os
          * @return
          */
         public boolean isPidExist(Integer pid) {
-            try {
-                File file = new File("/proc/" + pid);
-                if (file != null && file.exists()) {
-                    return true;
-                } else {
+            String os = System.getProperty("os.name");
+            if(os==null || os.isEmpty())return false;
+            if(os.contains("Windows")){
+                Runtime runtime = Runtime.getRuntime();
+                String cmds[] = { "cmd", "/c", "tasklist" };
+                Process proc = null;
+                InputStream inputstream = null;
+                InputStreamReader inputstreamreader = null;
+                BufferedReader bufferedreader = null;
+                try {
+                    proc = runtime.exec(cmds);
+                    inputstream = proc.getInputStream();
+                    inputstreamreader = new InputStreamReader(inputstream);
+                    bufferedreader = new BufferedReader(inputstreamreader);
+                    
+                    String line;
+                    while ((line = bufferedreader.readLine()) != null) {
+                        if(line != null && !line.isEmpty() && line.contains(String.valueOf(pid))){
+                            return true;
+                        }
+                    }
+                    return false;
+                } catch (IOException e) {
+                    return false;
+                }finally{
+                    try{
+                        if(bufferedreader!=null){bufferedreader.close();}
+                        if(inputstreamreader!=null){inputstreamreader.close();}
+                        if(inputstream!=null){inputstream.close();}
+                    }catch(Exception exp){}
+                }
+            }else{
+                try {
+                    File file = new File("/proc/" + pid);
+                    if (file != null && file.exists()) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } catch (Exception exp) {
                     return false;
                 }
-            } catch (Exception exp) {
-                return false;
             }
         }
     }//ProcessIdWatchProcessor
@@ -236,4 +274,3 @@ public final class ProcessIdWatchService{
         return pidList;
     }
 }
-
